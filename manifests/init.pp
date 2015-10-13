@@ -86,9 +86,21 @@ class rhn_register (
     default => " --profilename ${rhn_register::profilename}",
   }
 
-  $rhn_login = $rhn_register::username ? {
+  $rhn_username = $rhn_register::username ? {
     undef   => '',
-    default => " --username ${rhn_register::username} --password ${rhn_register::password}",
+    default => " --username ${rhn_register::username}",
+  }
+
+  $rhn_password = $rhn_register::password ? {
+    undef   => '',
+    default => " --password ${rhn_register::password}",
+  }
+
+  if ($rhn_register::username == undef or $rhn_register::password == undef) {
+    $rhn_login = ''
+  }
+  else {
+    $rhn_login = " ${rhn_username} ${rhn_password}"
   }
 
   $activation_key = $rhn_register::activationkey ? {
@@ -116,9 +128,21 @@ class rhn_register (
     default => '',
   }
 
-  $proxy_login = $rhn_register::proxyuser ? {
+  $proxy_user = $rhn_register::proxyuser ? {
     undef   => '',
-    default => " --proxyUser ${rhn_register::proxyuser} --proxyPassword ${rhn_register::proxypass}",
+    default => " --proxyUser ${rhn_register::proxyuser}",
+  }
+
+  $proxy_pass = $rhn_register::proxypass ? {
+    undef   => '',
+    default => " --proxyPassword ${rhn_register::proxypass}",
+  }
+
+  if ($rhn_register::proxyuser == undef or $rhn_register::proxypass == undef) {
+    $proxy_login = ''
+  }
+  else {
+    $proxy_login = " ${proxy_user} ${proxy_pass}"
   }
 
   $proxy_server = $rhn_register::proxy ? {
@@ -136,15 +160,15 @@ class rhn_register (
     default => " --serverUrl ${rhn_register::serverurl}",
   }
 
-  $command_args = "${rhn_register::profile_name}${rhn_register::activation_key}${rhn_register::rhn_login}${rhn_register::send_hardware}${rhn_register::send_packages}${rhn_register::send_virtinfo}${rhn_register::start_rhnsd}${rhn_register::proxy_server}${rhn_register::proxy_login}${rhn_register::ssl_ca}${rhn_register::server_url}"
+  $command_args = "${rhn_register::profile_name} ${rhn_register::activation_key} ${rhn_register::rhn_login} ${rhn_register::send_hardware} ${rhn_register::send_packages} ${rhn_register::send_virtinfo} ${rhn_register::start_rhnsd} ${rhn_register::proxy_server} ${rhn_register::proxy_login} ${rhn_register::ssl_ca} ${rhn_register::server_url}"
 
   if $rhn_register::force {
     exec { 'register_with_rhn':
-      command => "/usr/sbin/rhnreg_ks --force${rhn_register::command_args}",
+      command => "/usr/sbin/rhnreg_ks --force ${rhn_register::command_args}",
     }
   } else {
     exec { 'register_with_rhn':
-      command => "/usr/sbin/rhnreg_ks${rhn_register::command_args}",
+      command => "/usr/sbin/rhnreg_ks ${rhn_register::command_args}",
       creates => '/etc/sysconfig/rhn/systemid',
     }
   }
